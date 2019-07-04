@@ -199,11 +199,9 @@ if __name__ == '__main__':
     
     #import files
     model = "FCC"
-    #edges = np.loadtxt('examples/{}_edges.csv'.format(model),delimiter=',',dtype='int')
-    #vertices = np.loadtxt('examples/{}_vertices.csv'.format(model),delimiter=',')
-    edges = np.load('examples/edges_FCC.npy')
-    vertices = np.load('examples/vertex_FCC.npy')
     parallel_nodes = 8
+    edges = np.loadtxt('examples/{}_edges.csv'.format(model),delimiter=',',dtype='int')
+    vertices = np.loadtxt('examples/{}_vertices.csv'.format(model),delimiter=',')
 
     # Run Path Planning
     path = pathPlanner.run(edges,vertices,processes=8,export=True,filename=model)
