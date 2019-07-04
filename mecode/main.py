@@ -48,7 +48,7 @@ import math
 import os
 from collections import defaultdict
 
-from printer import Printer
+from .printer import Printer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -1217,7 +1217,7 @@ class G(object):
 
     # Public Interface  #######################################################
 
-    def view(self, backend='matplotlib', outfile=None, color_on=False,nozzle_cam=False):
+    def view(self, backend='matplotlib', outfile=None, color_on=False,nozzle_cam=False,export=False):
         """ View the generated Gcode.
 
         Parameters
@@ -1292,7 +1292,7 @@ class G(object):
         elif backend == 'vpython':
             import vpython as vp
             import copy
-            import povexport
+            #import povexport
             inclist = ['colors.inc', 'stones.inc', 'woods.inc', 'metals.inc']
 
             #Scene setup
@@ -1470,7 +1470,7 @@ class G(object):
 
                         if not self.compound_mode:
                             #if not self.pov_count % 10:
-                            if True:
+                            if export:
                                 #pass
                                 povexport.export(canvas=vp.scene, filename='/Users/wyssuser/Fleury/{}.pov'.format(self.pov_count), include_list=inclist)
                                 #print(self.pov_count)
@@ -1514,7 +1514,8 @@ class G(object):
             run()
 
             #Export final scene
-            povexport.export(canvas=vp.scene, filename='/Users/wyssuser/Fleury/final.pov', include_list=inclist)
+            if export:
+                povexport.export(canvas=vp.scene, filename='/Users/wyssuser/Fleury/final.pov', include_list=inclist)
 
         else:
             raise Exception("Invalid plotting backend! Choose one of mayavi or matplotlib or matplotlib2d.")
