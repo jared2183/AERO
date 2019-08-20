@@ -33,17 +33,18 @@ class Graph:
         if v not in self.graph[u]:
             #Only add edge if it satisfies angle requirement
             print_line = self.vert_vals[v]-self.vert_vals[u]
-            print_line = self.vert_vals[1]-self.vert_vals[6]
+            #print_line = self.vert_vals[1]-self.vert_vals[6]
             mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
             vertical_line = np.array([0,0,1])
             dot_p = np.sum(vertical_line*print_line)
             print_angle = np.arccos(dot_p/mag_line)/np.pi*180
 
-            if print_angle < 150:
+            if print_angle < 135:
                 self.edge_count += 1
                 self.graph[u].append(v)
                 self.graph[v].append(u)
             else:
+                #pass
                 self.graph[v].append(u)
 
     # This function removes edge u-v from graph    
@@ -79,7 +80,7 @@ class Graph:
         dot_p = np.sum(vertical_line*print_line)
         print_angle = np.arccos(dot_p/mag_line)/np.pi*180
         
-        if print_angle > 150:
+        if print_angle > 135:
             #import matplotlib.pyplot as plt
             #from mpl_toolkits.mplot3d import Axes3D
             #fig = plt.figure()
@@ -443,6 +444,16 @@ class Graph:
                     self.vert_vals[other_edge[1]].tolist()]) 
                     if not line_check_result:
                         return (False,other_edge)
+
+            # Experiemental mode to print lowest edge connected to vertex first
+            first_vertex = [i for i in self.E if edge[0] in i]  
+            second_vertex = [i for i in self.E if edge[1] in i]
+            #Average edge height
+            average_height_first_vertex = [self.vert_vals[i[0]][2]+self.vert_vals[i[1]][2] for i in first_vertex]
+            average_height_second_vertex = [self.vert_vals[i[0]][2]+self.vert_vals[i[1]][2] for i in second_vertex]
+            #if not ((self.vert_vals[edge[0]][2] + self.vert_vals[edge[1]][2]) <= min(average_height_first_vertex)) or not ((self.vert_vals[edge[0]][2] + self.vert_vals[edge[1]][2]) <= min(average_height_second_vertex)):
+            #    return (False,other_edge)
+            
             return (True,None)
 
         pool = Pool(nodes=int(self.processes))
@@ -510,7 +521,7 @@ def run(edges,vertices,processes,export,filename):
                 odd_node_count += 1
 
         # Using a color map, create a color for each part
-        colors = matplotlib.cm.rainbow(np.linspace(0, 1, odd_node_count/2))
+        colors = np.linspace(0, 1, odd_node_count/2)
 
         # Step through each color (part) and connect
         for color in colors:

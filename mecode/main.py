@@ -1238,7 +1238,7 @@ class G(object):
             ax = fig.gca(projection='3d')
             ax.set_aspect('equal')
 
-            if color:
+            if color_on:
                 for index in [x+2 for x in range(len(history[1:-1])-3)]:
                     X, Y, Z = history[index-1:index+1, 0], history[index-1:index+1, 1], history[index-1:index+1, 2]                
                     ax.plot(X, Y, Z,color = cm.gray(self.color_history[index])[:-1],linewidth=4.5)
@@ -1308,7 +1308,7 @@ class G(object):
             vp.scene.background = vp.vec(1,1,1)
             vp.scene.range = 70
             framerate = 30
-            fast_forward = 60
+            fast_forward = 30
 
             position_hist = history
             speed_hist = dict(self.speed_history)
@@ -1333,7 +1333,7 @@ class G(object):
                     self.current_position = start_location
                     self.nozzle_length = nozzle_length
                     self.nozzle_diameter = nozzle_diameter
-                    self.compound_mode = False
+                    self.compound_mode = True
                     self.pov_count = 0
                     self.scene_angle = 0
 
@@ -1507,7 +1507,7 @@ class G(object):
                         t_color = filament_color[extruding_hist[count][0]] if extruding_hist[count][0] != None else vp.color.black
                     self.head.abs_move(vp.vec(*pos),feed=t_speed,print_line=extruding_state,tail_color=t_color)
 
-            self.head = Printhead(nozzle_diameter=0.72,nozzle_length=25.4*2, start_location=vp.vec(*position_hist[0]))
+            self.head = Printhead(nozzle_diameter=1.0,nozzle_length=3, start_location=vp.vec(*position_hist[0]))
             #vp.box(pos=vp.vec(0.0,-0.5,0.0),length=100, height=1, width=100,color=vp.color.gray(0.8))
             print(self.head.pov_count)
             vp.scene.waitfor('click')

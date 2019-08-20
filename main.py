@@ -15,7 +15,7 @@ def gcodeGeneration(vertices,path,filename):
     #Generate gcode for path
     travel_height = 53.0
     travel_feed = 20.0
-    print_feed = 0.5
+    print_feed = 0.6
     com_port = 6
     g = G(outfile='output/{}.pgm'.format(filename),print_lines=False,aerotech_include=True)
     
@@ -57,16 +57,16 @@ def gcodeGeneration(vertices,path,filename):
         if volumetric_mode:
             g.write('G1 a{:.6f} E{:.6f}'.format(volumetric_extrusion,flowrate))
         else:
-            g.dwell(2)
+            g.dwell(delay_time)
         return volumetric_extrusion
 
-    def startDelay(volumetric_extrusion,delay_time=2.0):
+    def startDelay(volumetric_extrusion,delay_time=1.5):
         # 4 second dwell
         volumetric_extrusion += flowrate*delay_time
         if volumetric_mode:
             g.write('G1 a{:.6f} E{:.6f}'.format(volumetric_extrusion,flowrate))
         else:
-            g.dwell(4)
+            g.dwell(delay_time)
         return volumetric_extrusion
 
     def suckBack(volumetric_extrusion):
@@ -129,7 +129,7 @@ def gcodeGeneration(vertices,path,filename):
                 print_line[2] = 0
                 mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
                 unit_vector = print_line/mag_line
-                offset_vertex = np.array(V[edge])+unit_vector*end_extra_length
+                offset_vertex = np.array(V[edge])#+unit_vector*end_extra_length
                 
                 if edge in visited_vertices:
                     offset_vertex[2] += repeated_extra_height
@@ -165,7 +165,7 @@ def gcodeGeneration(vertices,path,filename):
                 unit_vector_out = print_line_out/mag_line_out
 
                 offset_unit_vector = unit_vector_in - unit_vector_out
-                offset_vertex = np.array(V[edge])+offset_unit_vector*end_extra_length
+                offset_vertex = np.array(V[edge])#+offset_unit_vector*end_extra_length
 
                 if edge in visited_vertices:
                     offset_vertex[2] += repeated_extra_height
@@ -190,7 +190,7 @@ def gcodeGeneration(vertices,path,filename):
     g.home()
     g.write("VELOCITY ON")
     #g.view('matplotlib',color_on=True)
-    g.view('vpython',nozzle_cam=False)
+    g.view('vpython',nozzle_cam=True)
     g.teardown()
 
 #### Run section ####
@@ -198,13 +198,13 @@ def gcodeGeneration(vertices,path,filename):
 if __name__ == '__main__':
     
     #import files
-    model = "FCC"
+    model = "output_test.3dm"
     parallel_nodes = 8
-    edges = np.loadtxt('examples/{}_edges.csv'.format(model),delimiter=',',dtype='int')
-    vertices = np.loadtxt('examples/{}_vertices.csv'.format(model),delimiter=',')
+    edges = np.loadtxt('grasshopper/{}_edges.csv'.format(model),delimiter=',',dtype='int')
+    vertices = np.loadtxt('grasshopper/{}_vertices.csv'.format(model),delimiter=',')
 
     # Run Path Planning
-    path = pathPlanner.run(edges,vertices,processes=8,export=True,filename=model)
+    path = pathPlanner.run(edges,vertices,processes=parallel_nodes,export=True,filename=model)
 
     # Or input existing path
     #path = np.load('sphere_filled_print_path_Final.npy')
