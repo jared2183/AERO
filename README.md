@@ -1,4 +1,4 @@
-AETP - Automated Eulerian Route Optimization
+AERO - Automated Eulerian Route Optimization
 ======
 
 ### An end to manually programmning direct ink write toolpaths
