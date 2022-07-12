@@ -11,8 +11,6 @@ if sys.platform == 'darwin':
     import matplotlib
     matplotlib.use("TkAgg")
 
-plot_results = True
-
 #This class represents an undirected graph using adjacency list representation
 class Graph:
     def __init__(self,vertices,vertice_vals):
@@ -30,23 +28,42 @@ class Graph:
 
     # This function adds edge u-v to graph
     def addEdge(self,u,v):
-        if v not in self.graph[u]:
-            #Only add edge if it satisfies angle requirement
-            print_line = self.vert_vals[v]-self.vert_vals[u]
-            #print_line = self.vert_vals[1]-self.vert_vals[6]
-            mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
-            vertical_line = np.array([0,0,1])
-            dot_p = np.sum(vertical_line*print_line)
-            print_angle = np.arccos(dot_p/mag_line)/np.pi*180
-
-            if print_angle < 135:
+       if v not in self.graph[u]:
+            if self.isValidAngle(u, v):
                 self.edge_count += 1
                 self.graph[u].append(v)
                 self.graph[v].append(u)
             else:
-                #pass
+                # Only add the one direction
                 self.graph[v].append(u)
-
+      
+    def isValidAngle(self, u, v, cutoff=150, debug=False):
+        # Check if moving from u to v is a valid printing move for embedded in terms of angle
+        # from: https://math.stackexchange.com/questions/974178/how-to-calculate-the-angle-between-2-vectors-in-3d-space-given-a-preset-function
+        
+        print_line = self.vert_vals[v]-self.vert_vals[u]
+        mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
+        vertical_line = np.array([0,0,1])
+        dot_p = np.sum(vertical_line*print_line)
+        print_angle = np.arccos(dot_p/mag_line)/np.pi*180
+        
+        if print_angle > cutoff:
+            if debug:
+                import matplotlib.pyplot as plt
+                from mpl_toolkits.mplot3d import Axes3D
+                fig = plt.figure()
+                ax = fig.add_subplot(111, projection='3d')
+                ax.plot([0,vertical_line[0]],[0,vertical_line[1]],[0,vertical_line[2]])
+                ax.plot([0,print_line[0]],[0,print_line[1]],[0,print_line[2]])
+                ax.set_xlim([-6,6])
+                ax.set_ylim([-6,6])
+                ax.set_zlim([-6,6])
+                plt.show()
+            self.bad_angle_count +=1
+            return False
+        else:
+            return True      
+        
     # This function removes edge u-v from graph    
     def rmvEdge(self, u, v):
         edge_removed = False
@@ -69,35 +86,6 @@ class Graph:
             if visited[i] == False:
                 count = count + self.DFSCount(i, visited)         
         return count
- 
-    def isValidAngle(self, u, v):
-        # Check if moving from u to v is a valid printing move for embedded in terms of angle
-        # from: https://math.stackexchange.com/questions/974178/how-to-calculate-the-angle-between-2-vectors-in-3d-space-given-a-preset-function
-        
-        print_line = self.vert_vals[v]-self.vert_vals[u]
-        mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
-        vertical_line = np.array([0,0,1])
-        dot_p = np.sum(vertical_line*print_line)
-        print_angle = np.arccos(dot_p/mag_line)/np.pi*180
-        
-        if print_angle > 135:
-            #import matplotlib.pyplot as plt
-            #from mpl_toolkits.mplot3d import Axes3D
-            #fig = plt.figure()
-            #ax = fig.add_subplot(111, projection='3d')
-            #ax.plot([0,vertical_line[0]],[0,vertical_line[1]],[0,vertical_line[2]])
-            #ax.plot([0,print_line[0]],[0,print_line[1]],[0,print_line[2]])
-            #ax.set_aspect('equal')
-            #ax.set_xlim([-6,6])
-            #ax.set_ylim([-6,6])
-            #ax.set_zlim([-6,6])
-            #plt.show()
-            #import ipdb; ipdb.set_trace()
-            self.bad_angle_count +=1
-            return False
-        
-        else:
-            return True
 
     # The function to check if edge u-v can be considered as next edge in Euler Tour
     def isValidNextEdge(self, u, v):
@@ -143,11 +131,10 @@ class Graph:
                 self.printEulerUtil(v)
         self.finished = True
 
- 
-    '''The main function that print Eulerian Trail. It first finds an odd
-   degree vertex (if there is any) and then calls printEulerUtil()
-   to print the path '''
     def printEulerTour(self,u=0):
+        '''The main function that prints Eulerian Trail. It first finds an odd
+        degree vertex (if there is any) and then calls printEulerUtil()
+        to print the path '''
         # u is the starting vertex
         self.path_order = [u]
         self.printEulerUtil(u)
@@ -432,6 +419,7 @@ class Graph:
         bad_angle_lines = []
         if debug:
             logfile = open('log.csv','w')
+        
         def edgeCheck(index,edge):
             edges_to_compare = copy.copy(self.E)
             edges_to_compare.pop(index)
@@ -445,7 +433,7 @@ class Graph:
                     if not line_check_result:
                         return (False,other_edge)
 
-            # Experiemental mode to print lowest edge connected to vertex first
+            # Experimental mode to print lowest edge connected to vertex first
             first_vertex = [i for i in self.E if edge[0] in i]  
             second_vertex = [i for i in self.E if edge[1] in i]
             #Average edge height
@@ -484,10 +472,7 @@ class Graph:
 
         return bad_angle_lines
 
-def run(edges,vertices,processes,export,filename):
-    # Load mesh data from Rhino
-    #F = np.loadtxt('sphere_filled_edges.csv',delimiter=',',dtype='int')
-    #V = np.loadtxt('sphere_filled_vertices.csv',delimiter=',')
+def run(edges,vertices,processes,export,filename,plot_results=True,debug=False):
     F = edges
     V = vertices
     print_path = []
@@ -497,7 +482,7 @@ def run(edges,vertices,processes,export,filename):
     g3 = Graph (len(V),V)
     g3.processes = processes
 
-    # Load edges from rhino
+    # Load edges
     for f in F:
         g3.E.append(f)
 
@@ -505,23 +490,35 @@ def run(edges,vertices,processes,export,filename):
     # A temp solution to the line angle problem could be to print those valid edges prior to calculating euler path
     # To do this, although they are valid edges, we would remove them from the edge generation function, printing those first or last
 
-    debug_mode = False
     while g3.E:
-    #for i in range(20):
         for kill in sorted(g3.kill_list,reverse=True):
             g3.E.pop(kill)
         g3.kill_list = []
         print('Remaining edges: {}'.format(len(g3.E)))
-        bad_angle_lines = g3.genEdges(debug= debug_mode)
+        bad_angle_lines = g3.genEdges(debug)
 
         # Count number of odd nodes to determine number of parts
         odd_node_count = 0
+        if debug:
+            import matplotlib.pyplot as plt
+            from mpl_toolkits.mplot3d import Axes3D
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.set_xlim([0,21])
+            ax.set_ylim([0,21])
+            ax.set_zlim([0,21])
+        odd_node_count = 0
         for index in range(len(V)):
+            if debug:
+                if len(g3.graph[index])!= 0:
+                    for j in g3.graph[index]:
+                        ax.plot([g3.vert_vals[index][0],g3.vert_vals[j][0]],[g3.vert_vals[index][1],g3.vert_vals[j][1]],[g3.vert_vals[index][2],g3.vert_vals[j][2]])
             if len(g3.graph[index])%2:
                 odd_node_count += 1
+        #plt.show()
 
         # Using a color map, create a color for each part
-        colors = np.linspace(0, 1, odd_node_count/2)
+        colors = np.linspace(0, 1, odd_node_count//2)
 
         # Step through each color (part) and connect
         for color in colors:
@@ -560,7 +557,6 @@ def run(edges,vertices,processes,export,filename):
                             break
                         else:
                         #Cannot be appended to existing path
-                            #import ipdb; ipdb.set_trace()
                             test = g3.printEulerTour(index)
                             if len(test) == 1:
                                 import ipdb; ipdb.set_trace()
@@ -568,22 +564,16 @@ def run(edges,vertices,processes,export,filename):
                             #print_path_temp.append(g3.printEulerTour(index))
                             break
 
-        if not print_path_temp:
-            if not debug_mode:
-                debug_mode = True
-            else:
-                break
-
         #ADD BAD ANGLE LINES
         print_path_temp += bad_angle_lines
         print_path.append(print_path_temp)
         print_path_temp = []
 
     #### RESULTS ####
-
     flat_print_path = [item for sublist in print_path for item in sublist]
     flatter_print_path = [item for sublist in flat_print_path for item in sublist]
 
+    print("Number of print segments: ", len(flat_print_path))
     if plot_results:
         import matplotlib.pyplot as plt
         list_length = [len(part) for part in flat_print_path]
@@ -593,19 +583,12 @@ def run(edges,vertices,processes,export,filename):
         plt.xlabel('Number of vertices')
         plt.ylabel('Frequency')
         plt.title('Number of vertices along continuous printed path')
-        plt.savefig('output/{}_edge_distribution.png'.format(filename))
+        plt.savefig('{}_edge_distribution.png'.format(filename))
 
     print("Input edge count: {} Solution edge count: {}".format(len(F),len(flatter_print_path)-len(flat_print_path)))
     print("Bad angle count: {}".format(g3.bad_angle_count))
 
     if export:
-        np.save('output/{}_path.npy'.format(filename),flat_print_path)    
-
-    #import ipdb; ipdb.set_trace()
+        np.save('{}_path.npy'.format(filename),flat_print_path)    
 
     return flat_print_path
-
-if __name__ == '__main__':
-    edges = np.loadtxt('sphere_filled_edges.csv',delimiter=',',dtype='int')
-    vertices = np.loadtxt('sphere_filled_vertices.csv',delimiter=',')
-    run(edges,vertices,sys.argv[1])

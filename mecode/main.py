@@ -4,7 +4,7 @@ Mecode
 
 ### GCode for all
 
-Mecode is designed to simplify GCode generation. It is not a slicer, thus it
+Mecode is designed to simplify GCode generation. It is not  a slicer, thus it
 can not convert CAD models to 3D printer ready code. It simply provides a
 convenient, human-readable layer just above GCode. If you often find
 yourself manually writing your own GCode, then mecode is for you.
@@ -48,7 +48,7 @@ import math
 import os
 from collections import defaultdict
 
-from .printer import Printer
+#from .printer import Printer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -195,7 +195,7 @@ class G(object):
 
         if is_str(outfile):
             self.out_fd = open(outfile, mode)
-        elif outfile is not None:  # if outfile not str assume it is an open file
+        elif outfile !=  None:  # if outfile not str assume it is an open file
             self.out_fd = outfile
         else:
             self.out_fd = None
@@ -314,17 +314,17 @@ class G(object):
             waits to return until all buffered lines have been acknowledged.
 
         """
-        if self.out_fd is not None:
+        if self.out_fd !=  None:
             if self.aerotech_include is True:
                 with open(os.path.join(HERE, 'footer.txt')) as fd:
                     self._write_out(lines=fd.readlines())
-            if self.footer is not None:
+            if self.footer !=  None:
                 with open(self.footer) as fd:
                     self._write_out(lines=fd.readlines())
             self.out_fd.close()
-        if self._socket is not None:
+        if self._socket !=  None:
             self._socket.close()
-        if self._p is not None:
+        if self._p !=  None:
             self._p.disconnect(wait)
 
     def home(self):
@@ -350,7 +350,7 @@ class G(object):
 
         """
         if self.extrude is True and 'E' not in kwargs.keys():
-            if self.is_relative is not True:
+            if self.is_relative !=  True:
                 x_move = self.current_position['x'] if x is None else x
                 y_move = self.current_position['y'] if y is None else y
                 x_distance = abs(x_move - self.current_position['x'])
@@ -435,11 +435,11 @@ class G(object):
 
         """
         dims = dict(kwargs)
-        if x is not None:
+        if x !=  None:
             dims['x'] = x
-        if y is not None:
+        if y !=  None:
             dims['y'] = y
-        if z is not None:
+        if z !=  None:
             dims['z'] = z
         msg = 'Must specify two of x, y, or z.'
         if len(dims) != 2:
@@ -485,7 +485,7 @@ class G(object):
         # only designed for flow calculations in x-y plane
         if self.extrude is True:
             area = self.layer_height*(self.extrusion_width-self.layer_height) + 3.14159*(self.layer_height/2)**2
-            if self.is_relative is not True:
+            if self.is_relative !=  True:
                 current_extruder_position = self.current_position['E']
             else:
                 current_extruder_position = 0
@@ -502,7 +502,7 @@ class G(object):
             filament_length = ((4*volume)/(3.14149*self.filament_diameter**2))*self.extrusion_multiplier
             dims['E'] = filament_length + current_extruder_position
 
-        if axis is not None:
+        if axis !=  None:
             self.write('G16 X Y {}'.format(axis))  # coordinate axis assignment
         self.write(plane_selector)
         args = self._format_args(**dims)
@@ -596,7 +596,7 @@ class G(object):
     def meander(self, x, y, spacing, start='LL', orientation='x', tail=False,
                 minor_feed=None):
         """ Infill a rectangle with a square wave meandering pattern. If the
-        relevant dimension is not a multiple of the spacing, the spacing will
+        relevant dimension is not  a multiple of the spacing, the spacing will
         be tweaked to ensure the dimensions work out.
 
         Parameters
@@ -1236,7 +1236,7 @@ class G(object):
         if backend == 'matplotlib':
             fig = plt.figure()
             ax = fig.gca(projection='3d')
-            ax.set_aspect('equal')
+            #ax.set_aspect('equal')
 
             if color_on:
                 for index in [x+2 for x in range(len(history[1:-1])-3)]:
@@ -1507,7 +1507,7 @@ class G(object):
                         t_color = filament_color[extruding_hist[count][0]] if extruding_hist[count][0] != None else vp.color.black
                     self.head.abs_move(vp.vec(*pos),feed=t_speed,print_line=extruding_state,tail_color=t_color)
 
-            self.head = Printhead(nozzle_diameter=1.0,nozzle_length=3, start_location=vp.vec(*position_hist[0]))
+            self.head = Printhead(nozzle_diameter=1.0,nozzle_length=25.4, start_location=vp.vec(*position_hist[0]))
             #vp.box(pos=vp.vec(0.0,-0.5,0.0),length=100, height=1, width=100,color=vp.color.gray(0.8))
             print(self.head.pov_count)
             vp.scene.waitfor('click')
@@ -1557,11 +1557,11 @@ class G(object):
         >>> g.rename_axis(z='A')
 
         """
-        if x is not None:
+        if x !=  None:
             self.x_axis = x
-        elif y is not None:
+        elif y !=  None:
             self.y_axis = y
-        elif z is not None:
+        elif z !=  None:
             self.z_axis = z
         else:
             msg = 'Must specify new name for x, y, or z only'
@@ -1576,7 +1576,7 @@ class G(object):
         if self.out_fd is None:
             return
 
-        if lines is not None:
+        if lines !=  None:
             for line in lines:
                 self._write_out(line)
 
@@ -1600,18 +1600,18 @@ class G(object):
         if self.aerotech_include is True:
             with open(os.path.join(HERE, 'header.txt')) as fd:
                 self._write_out(lines=fd.readlines())
-        if self.header is not None:
+        if self.header !=  None:
             with open(self.header) as fd:
                 self._write_out(lines=fd.readlines())
 
     def _format_args(self, x=None, y=None, z=None, **kwargs):
         d = self.output_digits
         args = []
-        if x is not None:
+        if x !=  None:
             args.append('{0}{1:.{digits}f}'.format(self.x_axis, x, digits=d))
-        if y is not None:
+        if y !=  None:
             args.append('{0}{1:.{digits}f}'.format(self.y_axis, y, digits=d))
-        if z is not None:
+        if z !=  None:
             args.append('{0}{1:.{digits}f}'.format(self.z_axis, z, digits=d))
         args += ['{0}{1:.{digits}f}'.format(k, kwargs[k], digits=d) for k in sorted(kwargs)]
         args = ' '.join(args)
@@ -1622,28 +1622,28 @@ class G(object):
         if mode == 'auto':
             mode = 'relative' if self.is_relative else 'absolute'
 
-        if self.x_axis is not 'X' and x is not None:
+        if self.x_axis !=  'X' and x !=  None:
             kwargs[self.x_axis] = x
-        if self.y_axis is not 'Y' and y is not None:
+        if self.y_axis !=  'Y' and y !=  None:
             kwargs[self.y_axis] = y
-        if self.z_axis is not 'Z' and z is not None:
+        if self.z_axis !=  'Z' and z !=  None:
             kwargs[self.z_axis] = z
 
         if mode == 'relative':
-            if x is not None:
+            if x !=  None:
                 self._current_position['x'] += x
-            if y is not None:
+            if y !=  None:
                 self._current_position['y'] += y
-            if z is not None:
+            if z !=  None:
                 self._current_position['z'] += z
             for dimention, delta in kwargs.items():
                 self._current_position[dimention] += delta
         else:
-            if x is not None:
+            if x !=  None:
                 self._current_position['x'] = x
-            if y is not None:
+            if y !=  None:
                 self._current_position['y'] = y
-            if z is not None:
+            if z !=  None:
                 self._current_position['z'] = z
             for dimention, delta in kwargs.items():
                 self._current_position[dimention] = delta

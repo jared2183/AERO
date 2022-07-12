@@ -148,21 +148,21 @@ class Printer(object):
                 while buf_len > len(self.responses) and \
                       self._is_read_thread_running():
                     sleep(0.01)  # wait until all lines in the buffer are sent
-            if self._print_thread is not None:
+            if self._print_thread !=  None:
                 self.stop_printing = True
-                if self.s is not None and self.s.writeTimeout is not None:
+                if self.s !=  None and self.s.writeTimeout !=  None:
                     timeout = self.s.writeTimeout + 1
                 else:
                     timeout = 10
                 self._print_thread.join(timeout)
-            if self._read_thread is not None:
+            if self._read_thread !=  None:
                 self.stop_reading = True
-                if self.s is not None and self.s.timeout is not None:
+                if self.s !=  None and self.s.timeout !=  None:
                     timeout = self.s.timeout + 1
                 else:
                     timeout = 10
                 self._read_thread.join(timeout)
-            if self.s is not None and self._owns_serial is True:
+            if self.s !=  None and self._owns_serial is True:
                 self.s.close()
                 self.s = None
             self.printing = False
@@ -312,10 +312,10 @@ class Printer(object):
             logger.exception("Exception running read worker: " + str(e))
 
     def _is_print_thread_running(self):
-        return self._print_thread is not None and self._print_thread.is_alive()
+        return self._print_thread !=  None and self._print_thread.is_alive()
 
     def _is_read_thread_running(self):
-        return self._read_thread is not None and self._read_thread.is_alive()
+        return self._read_thread !=  None and self._read_thread.is_alive()
 
     def _print_worker(self):
         """ This method is spawned in the print thread. It loops over every line
@@ -354,7 +354,7 @@ class Printer(object):
         """
         full_resp = ''
         while not self.stop_reading:
-            if self.s is not None:
+            if self.s !=  None:
                 line = self.s.readline()
                 if line.startswith('Resend: '):  # example line: "Resend: 143"
                     self._current_line_idx = int(line.split()[1]) - 1 + self._reset_offset
