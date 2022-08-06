@@ -261,7 +261,6 @@ def export_curve(a):
         while ii < a.npoints-1:
             endpt1 = a.point(ii)
             endpt2 = a.point(ii+1)
-            #import ipdb; ipdb.set_trace()
             if endpt1['radius'] == 0:
                 rr = a.radius
             else:

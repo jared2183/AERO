@@ -576,13 +576,13 @@ def run(edges,vertices,processes,export,filename,plot_results=True,debug=False):
     print("Number of print segments: ", len(flat_print_path))
     if plot_results:
         import matplotlib.pyplot as plt
-        list_length = [len(part) for part in flat_print_path]
+        list_length = [len(part)-1 for part in flat_print_path]
         dist = OrderedDict(sorted(Counter(list_length).items()))
         plt.bar(range(len(dist)), list(dist.values()), align='center')
         plt.xticks(range(len(dist)), list(dist.keys()))
-        plt.xlabel('Number of vertices')
+        plt.xlabel('Number of edges')
         plt.ylabel('Frequency')
-        plt.title('Number of vertices along continuous printed path')
+        plt.title('Number of edges along continuous printed path')
         plt.savefig('{}_edge_distribution.png'.format(filename))
 
     print("Input edge count: {} Solution edge count: {}".format(len(F),len(flatter_print_path)-len(flat_print_path)))

@@ -9,7 +9,7 @@ ax = fig.add_subplot(111, projection='3d')
 h = 7.0
 w = 7.0
 l = 7.0
-H = 2
+H = 3
 W = 3
 L = 3
 vertices = []

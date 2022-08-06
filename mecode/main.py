@@ -1292,7 +1292,7 @@ class G(object):
         elif backend == 'vpython':
             import vpython as vp
             import copy
-            #import povexport
+            import mecode.povexport as povexport
             inclist = ['colors.inc', 'stones.inc', 'woods.inc', 'metals.inc']
 
             #Scene setup
@@ -1306,9 +1306,9 @@ class G(object):
             vp.scene.center = vp.vec(0,10,0) 
             vp.scene.center = vp.vec(10.5,0,-10.5) 
             vp.scene.background = vp.vec(1,1,1)
-            vp.scene.range = 70
+            vp.scene.range = 40
             framerate = 30
-            fast_forward = 30
+            fast_forward = 50
 
             position_hist = history
             speed_hist = dict(self.speed_history)
@@ -1333,7 +1333,10 @@ class G(object):
                     self.current_position = start_location
                     self.nozzle_length = nozzle_length
                     self.nozzle_diameter = nozzle_diameter
-                    self.compound_mode = True
+                    if export:
+                        self.compound_mode = False
+                    else: 
+                        self.compound_mode = True
                     self.pov_count = 0
                     self.scene_angle = 0
 
@@ -1508,7 +1511,7 @@ class G(object):
                     self.head.abs_move(vp.vec(*pos),feed=t_speed,print_line=extruding_state,tail_color=t_color)
 
             self.head = Printhead(nozzle_diameter=1.0,nozzle_length=25.4, start_location=vp.vec(*position_hist[0]))
-            #vp.box(pos=vp.vec(0.0,-0.5,0.0),length=100, height=1, width=100,color=vp.color.gray(0.8))
+            vp.box(pos=vp.vec(21/2,21/2,-21/2),length=31, height=31, width=31,color=vp.color.gray(0.8),opacity=0.1)
             print(self.head.pov_count)
             vp.scene.waitfor('click')
             run()

@@ -13,9 +13,9 @@ import sys
 from mecode.main import G
 import pathPlanner
 
-def gcodeGeneration(vertices, print_path, filename, travel_height=53,
-                    travel_feed=20, print_feed=1, com_port=6, title="AERO",
-                    volumetric_mode=False, flowrate=0.007):
+def gcodeGeneration(vertices, print_path, filename, travel_height=30,
+                    travel_feed=2, print_feed=1, com_port=6, title="AERO",
+                    volumetric_mode=False, flowrate=0.007, preview=False):
     """
         Parameters
         ----------
@@ -189,8 +189,9 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=53,
 
     g.home()
     g.write("VELOCITY ON")
-    #g.view('matplotlib',color_on=False)
-    #g.view('vpython',nozzle_cam=False)
+    if preview:
+        #g.view('matplotlib',color_on=False)
+        g.view('vpython',nozzle_cam=False)
     g.teardown()
 
 if __name__ == '__main__':
@@ -203,6 +204,6 @@ if __name__ == '__main__':
     path = pathPlanner.run(edges,vertices,processes=parallel_nodes,export=True,filename=model)
 
     # Or input existing path
-    #path = np.load('examples/Octet Lattice 3x3x2/Output/Octet_path.npy',allow_pickle=True)
+    #path = np.load('octet_path.npy',allow_pickle=True)
 
-    #gcode = gcodeGeneration(vertices,path,filename=model)
+    gcode = gcodeGeneration(vertices,path,filename=model)
