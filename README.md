@@ -3,7 +3,7 @@ AERO - Automated Eulerian Route Optimization
 
 ### An end to manually programmning direct ink write toolpaths
 
-AERO is a toolpath planner which uses graph theory and the basic rules of direct ink to determine an optimal print path using specified filament locations.
+AERO is a toolpath planner which uses graph theory and the basic rules of direct ink writing to determine an optimal print path using specified filament locations.
 
 TODO
 ----
