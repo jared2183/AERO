@@ -127,9 +127,14 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
                 print_line = np.array(V[edge]-getPosition())
                 # #Remove vertical component
                 print_line[2] = 0
-                mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
-                unit_vector = print_line/mag_line
-                offset_vertex = np.array(V[edge])+unit_vector*end_extra_length
+
+                # checks if there should be an offset
+                if print_line.any() and end_extra_length != 0:
+                    mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
+                    unit_vector = print_line/mag_line
+                    offset_vertex = np.array(V[edge])+unit_vector*end_extra_length
+                else:
+                    offset_vertex = np.array(V[edge])
                 
                 if edge in visited_vertices:
                     offset_vertex[2] += repeated_extra_height
