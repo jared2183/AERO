@@ -15,7 +15,7 @@ import pathPlanner
 
 def gcodeGeneration(vertices, print_path, filename, travel_height=30,
                     travel_feed=2, print_feed=1, com_port=6, title="AERO",
-                    volumetric_mode=False, flowrate=0.007, preview=False):
+                    volumetric_mode=False, flowrate=0.007, preview=True):
     """
         Parameters
         ----------
@@ -107,6 +107,7 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
 
     for part in print_path:
         g.write("G65 F100")
+        # print(f"Printing part {part}")
         g.move(*V[part[0]][:2])
         g.write("G66 F1")
         if part[0] in visited_vertices:
@@ -195,18 +196,20 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
     g.home()
     g.write("VELOCITY ON")
     if preview:
-        #g.view('matplotlib',color_on=False)
+        # g.view('matplotlib',color_on=False)
         g.view('vpython',nozzle_cam=False)
     g.teardown()
 
 if __name__ == '__main__':
     #import files
     model = 'octet'
-    edges = np.loadtxt('examples/Octet Lattice 3x3x3/Input/octet_edges.csv',delimiter=',',dtype='int')
-    vertices = np.loadtxt('examples/Octet Lattice 3x3x3/Input/octet_vertices.csv',delimiter=',')
+    # edges = np.loadtxt('examples/Octet Lattice 3x3x3/Input/octet_edges.csv',delimiter=',',dtype='int')
+    # vertices = np.loadtxt('examples/Octet Lattice 3x3x3/Input/octet_vertices.csv',delimiter=',')
+    edges = np.loadtxt('examples/Cubic Lattice/Input/cubic_edges.csv',delimiter=',',dtype='int')
+    vertices = np.loadtxt('examples/Cubic Lattice/Input/cubic_vertices.csv',delimiter=',')
     # Run Path Planning
     parallel_nodes = 8
-    path = pathPlanner.run(edges,vertices,processes=parallel_nodes,export=True,filename=model)
+    path = pathPlanner.run(edges,vertices,processes=parallel_nodes,export=False,filename=model)
 
     # Or input existing path
     #path = np.load('octet_path.npy',allow_pickle=True)
