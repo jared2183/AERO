@@ -570,8 +570,21 @@ def run(edges,vertices,processes,export,filename,plot_results=True,debug=False):
         print_path_temp = []
 
     #### RESULTS ####
+    # def pad_to_dense(M):
+    #     """Appends the minimal required amount of zeroes at the end of each 
+    #     array in the jagged array `M`, such that `M` looses its jagedness."""
+
+    #     maxlen = max(len(r) for r in M)
+
+    #     Z = np.empty((len(M), maxlen), dtype=object)
+    #     Z[:] = None
+    #     for enu, row in enumerate(M):
+    #         Z[enu, :len(row)] = row 
+    #     return Z
+    
     flat_print_path = [item for sublist in print_path for item in sublist]
     flatter_print_path = [item for sublist in flat_print_path for item in sublist]
+    # flat_print_path = pad_to_dense(flat_print_path)     # jank fix for jagged array
 
     print("Number of print segments: ", len(flat_print_path))
     if plot_results:
