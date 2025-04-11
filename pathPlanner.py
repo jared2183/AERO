@@ -21,7 +21,7 @@ class Graph:
         self.finished= False
         self.vert_vals = vertice_vals
         self.color = None
-        self.edge_count =0
+        self.edge_count = 0
         self.colinear_vals = []
         self.kill_list = []
         self.bad_angle_count = 0
@@ -141,16 +141,16 @@ class Graph:
         self.finished = False
         return self.path_order
     
-    def addTriangle(self, F):
-        ### EXPERIMENTAL ###
-        #Add all edges of a triangle object iff it doesn't block access to another edge
-        for t in F:
-            if not [t[0],t[1]] in self.E or not [t[1],t[0]] in self.E:
-                self.E.append([t[0],t[1]])
-            if not [t[0],t[2]] in self.E or not [t[1],t[2]] in self.E:
-                self.E.append([t[0],t[2]])
-            if not [t[1],t[2]] in self.E or not [t[1],t[2]] in self.E:
-                self.E.append([t[1],t[2]])
+    # def addTriangle(self, F):
+    #     ### EXPERIMENTAL ###
+    #     #Add all edges of a triangle object iff it doesn't block access to another edge
+    #     for t in F:
+    #         if not [t[0],t[1]] in self.E or not [t[1],t[0]] in self.E:
+    #             self.E.append([t[0],t[1]])
+    #         if not [t[0],t[2]] in self.E or not [t[1],t[2]] in self.E:
+    #             self.E.append([t[0],t[2]])
+    #         if not [t[1],t[2]] in self.E or not [t[1],t[2]] in self.E:
+    #             self.E.append([t[1],t[2]])
 
     def lineCheck(self,line1, line2, recursive_stop = False, recursive_stop_2 = True):
         #Check if printing line1 will prevent printing line2

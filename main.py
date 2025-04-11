@@ -13,8 +13,8 @@ import sys
 from mecode.main import G
 import pathPlanner
 
-def gcodeGeneration(vertices, print_path, filename, travel_height=30,
-                    travel_feed=2, print_feed=1, com_port=6, title="AERO",
+def gcodeGeneration(edges, vertices, print_path, filename, travel_height=30,
+                    travel_feed=2, dwell_time=0.2, com_port=6, title="AERO",
                     volumetric_mode=False, flowrate=0.007, preview=True):
     """
         Parameters
@@ -30,8 +30,6 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
             Safe plane in which to travel between printing moves.
         travel_feed : float
             Speed at which to move when travelling.
-        print_feed : float
-            Speed at which to move when printing.
         com_port : int or None (default: 6)
             Serial communication port to use when toggle pressure supply.
         title : str or None (default: "AERO")
@@ -67,6 +65,13 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
 
     def getPosition():
         return np.fromiter(g.current_position.values(), dtype=float)[:3]
+
+    def getEdgeData():
+        sp_dict = dict()
+        for edge in edges:
+            sp_dict[tuple(sorted(edge[:2]))] = {'speed': edge[2], 'pressure': edge[3]}
+        print(sp_dict)
+        return sp_dict
 
     def nodeDelay(volumetric_extrusion,delay_time=1.5):
         volumetric_extrusion += flowrate*delay_time
@@ -104,6 +109,7 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
     # Pretty much elongate end of along line
     # and push out nodes in combination of line extension
     # Seems to be working correctly thus far
+    sp_dict = getEdgeData() # dictionary mapping edge (u, v) to a dict with speed and pressure
 
     for part in print_path:
         g.write("G65 F100")
@@ -114,18 +120,28 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
             V[part[0]][2] += repeated_extra_height
         else:
             visited_vertices.append(part[0]) 
-        
+
         g.move(z=V[part[0]][2])
         g.write("G65 F1")
-        g.feed(print_feed)
-        g.toggle_pressure(com_port)
-        volumetric_extrusion =startDelay(volumetric_extrusion)
-        for index,edge in enumerate(part[1:]):
+
+        volumetric_extrusion = startDelay(volumetric_extrusion)
+        prev_vertex = part[0]
+
+        for index,vertex in enumerate(part[1:]):
+            # sets the feedrate and pressure for the edge
+            print_feed = sp_dict[tuple(sorted([prev_vertex, vertex]))]['speed']
+            print_pressure = sp_dict[tuple(sorted([prev_vertex, vertex]))]['pressure']
+            g.feed(print_feed)
+            g.set_pressure(com_port, print_pressure)
+            g.toggle_pressure(com_port)     # turns on the pressure box
+            if dwell_time > 0:
+                g.dwell(dwell_time)     # waits for material to flow out
+
             if index == len(part[1:]) - 1:
                 #On last move
                 #For the last move, we simply want to extend along line
                 # Get unit vector for line and add to final position
-                print_line = np.array(V[edge]-getPosition())
+                print_line = np.array(V[vertex]-getPosition())
                 # #Remove vertical component
                 print_line[2] = 0
 
@@ -133,14 +149,14 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
                 if print_line.any() and end_extra_length != 0:
                     mag_line = np.sqrt(print_line[0]**2+print_line[1]**2+print_line[2]**2)
                     unit_vector = print_line/mag_line
-                    offset_vertex = np.array(V[edge])+unit_vector*end_extra_length
+                    offset_vertex = np.array(V[vertex])+unit_vector*end_extra_length
                 else:
-                    offset_vertex = np.array(V[edge])
+                    offset_vertex = np.array(V[vertex])
                 
-                if edge in visited_vertices:
+                if vertex in visited_vertices:
                     offset_vertex[2] += repeated_extra_height
                 else:
-                    visited_vertices.append(edge)
+                    visited_vertices.append(vertex)
 
                 offset_vertex_line = offset_vertex-np.array(getPosition())
                 time_for_move = np.sqrt(offset_vertex_line[0]**2+offset_vertex_line[1]**2+offset_vertex_line[2]**2)/print_feed
@@ -155,7 +171,7 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
             else:
                 #Going into node
                 # Get unit vector for line entering node
-                print_line_in = np.array(V[edge]-getPosition())
+                print_line_in = np.array(V[vertex]-getPosition())
                 # Remove vertical component
                 print_line_in[2] = 0
                 mag_line_in = np.sqrt(print_line_in[0]**2+print_line_in[1]**2+print_line_in[2]**2)
@@ -163,7 +179,7 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
                 unit_vector_in = print_line_in/mag_line_in
 
                 # Get unit vector for line exiting node
-                print_line_out = np.array(V[part[1:][index+1]]-V[edge])
+                print_line_out = np.array(V[part[1:][index+1]]-V[vertex])
                 # Remove vertical component
                 print_line_out[2] = 0
                 mag_line_out = np.sqrt(print_line_out[0]**2+print_line_out[1]**2+print_line_out[2]**2)
@@ -171,12 +187,12 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
                 unit_vector_out = print_line_out/mag_line_out
 
                 offset_unit_vector = unit_vector_in - unit_vector_out
-                offset_vertex = np.array(V[edge])+offset_unit_vector*end_extra_length
+                offset_vertex = np.array(V[vertex])+offset_unit_vector*end_extra_length
 
-                if edge in visited_vertices:
+                if vertex in visited_vertices:
                     offset_vertex[2] += repeated_extra_height
                 else:
-                    visited_vertices.append(edge)
+                    visited_vertices.append(vertex)
 
                 offset_vertex_line = offset_vertex-np.array(getPosition())
                 time_for_move = np.sqrt(offset_vertex_line[0]**2+offset_vertex_line[1]**2+offset_vertex_line[2]**2)/print_feed
@@ -187,7 +203,9 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
                     g.move(*offset_vertex)
                 volumetric_extrusion = nodeDelay(volumetric_extrusion)
 
-        g.toggle_pressure(com_port)
+            prev_vertex = vertex
+            g.toggle_pressure(com_port)     # turns off the pressure box
+
         g.feed(travel_feed)
         g.write("G66 F100")
         g.move(z=travel_height)
@@ -202,11 +220,12 @@ def gcodeGeneration(vertices, print_path, filename, travel_height=30,
 
 if __name__ == '__main__':
     #import files
-    model = 'octet'
-    # edges = np.loadtxt('examples/Octet Lattice 3x3x3/Input/octet_edges.csv',delimiter=',',dtype='int')
-    # vertices = np.loadtxt('examples/Octet Lattice 3x3x3/Input/octet_vertices.csv',delimiter=',')
-    edges = np.loadtxt('examples/Cubic Lattice/Input/cubic_edges.csv',delimiter=',',dtype='int')
-    vertices = np.loadtxt('examples/Cubic Lattice/Input/cubic_vertices.csv',delimiter=',')
+    model = 'Cubic Sphere'
+    edge_file = 'examples/Cube to Sphere/Input/Cubic_Sphere_edges.csv'
+    vertex_file = 'examples/Cube to Sphere/Input/Cubic_Sphere_vertices.csv'
+    edges = np.loadtxt(edge_file,delimiter=',',dtype='int')
+    vertices = np.loadtxt(vertex_file,delimiter=',')
+    
     # Run Path Planning
     parallel_nodes = 8
     path = pathPlanner.run(edges,vertices,processes=parallel_nodes,export=False,filename=model)
@@ -214,4 +233,4 @@ if __name__ == '__main__':
     # Or input existing path
     #path = np.load('octet_path.npy',allow_pickle=True)
 
-    gcode = gcodeGeneration(vertices,path,filename=model)
+    gcode = gcodeGeneration(edges,vertices,path,filename=model, com_port=6)
