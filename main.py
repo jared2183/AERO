@@ -67,10 +67,10 @@ def gcodeGeneration(edges, vertices, print_path, filename, travel_height=30,
         return np.fromiter(g.current_position.values(), dtype=float)[:3]
 
     def getEdgeData():
+        # dictionary mapping edge to speed and pressure
         sp_dict = dict()
         for edge in edges:
             sp_dict[tuple(sorted(edge[:2]))] = {'speed': edge[2], 'pressure': edge[3]}
-        print(sp_dict)
         return sp_dict
 
     def nodeDelay(volumetric_extrusion,delay_time=1.5):
